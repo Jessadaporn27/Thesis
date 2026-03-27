@@ -1,16 +1,139 @@
-# React + Vite
+# CodeLearn (Thesis Project)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+เว็บแอปสำหรับเรียนเขียนโค้ดแบบ Interactive โดยมี:
+- หน้าเรียนคอร์ส/บทเรียน
+- Code Editor + Output Panel
+- ตรวจคำตอบโจทย์
+- AI Assistant (CodeBuddy) ผ่าน Ollama
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React + Vite
+- Monaco Editor
+- Python runtime: Pyodide (รันใน Browser)
+- JavaScript runtime: Browser runtime
+- AI Chat: Ollama (`/api/ollama`)
 
-## React Compiler
+## Run Local
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+> แนะนำ Node.js `20.19+` หรือ `22.12+` (Vite 7)
 
-## Expanding the ESLint configuration
+```bat
+cd /d c:\Users\Administrator\Desktop\Thesis
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+เปิดเบราว์เซอร์ที่ URL จาก terminal (ปกติ `http://localhost:5173`)
+
+## เปิดใช้งาน AI Chat (Ollama)
+
+ฝั่ง Frontend เรียก ` /api/ollama ` และตอนรัน dev จะ proxy ไป `http://localhost:11434`
+
+1) ติดตั้ง Ollama
+2) เปิด Ollama server
+3) ดาวน์โหลดโมเดล
+
+```bat
+ollama serve
+ollama pull llama3.2
+```
+
+> ถ้าไม่เปิด Ollama ฟีเจอร์ AI จะใช้งานไม่ได้ แต่ฟีเจอร์เรียน/รันโค้ดยังใช้งานได้ตามปกติ
+
+---
+
+## Deploy บน Alibaba Cloud
+
+มี 2 รูปแบบที่แนะนำ:
+
+### ตัวเลือก A: Deploy แบบ Static (Alibaba OSS + CDN) — ง่ายสุด
+
+เหมาะกับ:
+- ต้องการ deploy หน้าเว็บเร็วที่สุด
+- ยังไม่ต้องใช้ AI Chat ใน production
+
+ขั้นตอน:
+1. Build โปรเจกต์
+2. อัปโหลดโฟลเดอร์ `dist/` ไปที่ OSS Bucket
+3. เปิด Static Website Hosting ของ OSS
+4. (แนะนำ) ผูก CDN และโดเมน
+
+```bat
+cd /d c:\Users\Administrator\Desktop\Thesis
+npm install
+npm run build
+```
+
+หลัง build เสร็จ ไฟล์ deploy จะอยู่ใน `dist/`
+
+> หมายเหตุ: โหมดนี้จะไม่มี backend proxy ให้ `/api/ollama` จึงไม่รองรับ AI Chat เว้นแต่คุณทำ API เพิ่มเอง
+
+---
+
+### ตัวเลือก B: Deploy บน Alibaba ECS + Nginx (รองรับ AI ถ้าตั้งเพิ่ม)
+
+เหมาะกับ:
+- ต้องการควบคุมระบบเอง
+- ต้องการใช้ AI Chat ผ่าน Ollama
+
+สถาปัตยกรรมแนะนำ:
+- Nginx เสิร์ฟไฟล์ frontend จาก `dist/`
+- Route `/api/ollama` reverse proxy ไป Ollama (`http://127.0.0.1:11434` หรือ private IP)
+
+#### 1) Build frontend
+
+```bat
+cd /d c:\Users\Administrator\Desktop\Thesis
+npm install
+npm run build
+```
+
+#### 2) นำไฟล์ `dist/` ขึ้น ECS
+
+วางไว้เช่น `/var/www/codelearn/dist`
+
+#### 3) ตั้งค่า Nginx
+
+มีไฟล์ตัวอย่างที่ `deploy/nginx/default.conf`
+
+จุดสำคัญ:
+- `try_files` ต้อง fallback ไป `index.html` สำหรับ React Router
+- เพิ่ม location `/api/ollama/` ให้ proxy ไป Ollama
+
+#### 4) (ถ้าจะใช้ AI) ติดตั้ง/รัน Ollama บน ECS
+
+```bash
+ollama serve
+ollama pull llama3.2
+```
+
+> เพื่อความปลอดภัย ควรปิดการเข้าถึงพอร์ต `11434` จาก public internet และให้เรียกผ่าน Nginx เท่านั้น
+
+---
+
+## Deploy ด้วย Docker (ทางเลือก)
+
+มี `Dockerfile` ให้แล้ว (build React + serve ด้วย Nginx)
+
+```bash
+docker build -t codelearn-frontend:latest .
+docker run -d --name codelearn-frontend -p 80:80 codelearn-frontend:latest
+```
+
+ถ้าจะใช้ AI ผ่าน container เดียวกัน ให้แก้ upstream ใน `deploy/nginx/default.conf` ให้ชี้ไปเครื่อง/บริการ Ollama ที่เข้าถึงได้
+
+---
+
+## Troubleshooting
+
+- **Build เตือนเวอร์ชัน Node ต่ำ**
+	- อัปเกรด Node.js เป็น `20.19+` หรือ `22.12+`
+
+- **Refresh หน้าแล้วยิง 404**
+	- ตรวจว่า Nginx ใช้ `try_files $uri $uri/ /index.html;`
+
+- **AI ขึ้นเชื่อมต่อไม่ได้**
+	- ตรวจว่า Ollama ทำงานอยู่
+	- ตรวจว่า Nginx มี proxy `/api/ollama/`
+	- ตรวจ Firewall/Security Group ว่าระบบภายในคุยกันได้
