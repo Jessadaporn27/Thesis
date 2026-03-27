@@ -1,0 +1,127 @@
+.playground-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+}
+
+/* Top Bar */
+.playground-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.playground-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.playground-icon {
+    font-size: 24px;
+}
+
+.playground-title h1 {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.playground-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.playground-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Language Selector */
+.lang-selector {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-primary);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.lang-btn:hover {
+    color: var(--text-primary);
+}
+
+.lang-btn.active {
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.playground-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Layout */
+.playground-layout {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.playground-editor {
+    flex: 1;
+    min-width: 0;
+}
+
+.playground-output {
+    width: 40%;
+    min-width: 300px;
+    border-left: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .playground-layout {
+        flex-direction: column;
+    }
+
+    .playground-editor {
+        height: 55%;
+    }
+
+    .playground-output {
+        width: 100%;
+        min-width: 0;
+        flex: 1;
+        border-left: none;
+        border-top: 1px solid var(--border);
+    }
+
+    .playground-topbar {
+        padding: 10px 16px;
+    }
+
+    .playground-subtitle {
+        display: none;
+    }
+}
